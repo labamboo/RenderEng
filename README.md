@@ -7,7 +7,7 @@ For starters, this project will be written in python with graphics done using th
 
 # Part 1:
 Create a bare-bones rendering model with only triangular surfaces (tuples of 3 points), rendered by simple ray projection.<br>
-<b>Iteration 1<b>: This first iteration will not track any information about the objects being rendered, including, crucially, depth. It also maps each pixel of the image frame to a ray, which means we need to be able to adjust the rendered image at the pixel level. This can't be done with opengl, so we will use opencv instead.<br>
+<b>Iteration 1<b>: This first iteration will not track any information about the objects being rendered including, crucially, depth. It also maps each pixel of the image frame to a ray, which means we need to be able to adjust the rendered image at the pixel level. This can't be done with opengl, so we will use opencv instead.<br>
 
 Improvements to make: <br>
 - map triangles onto the image frame instead of vice versa
