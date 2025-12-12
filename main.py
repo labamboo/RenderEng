@@ -21,13 +21,15 @@ for triangle in triangles:
         currtriangle += [Vector3d(point[0], point[1], point[2])]
     trianglesnew += [currtriangle]
 
-print(cameraplane.intersection(trianglesnew[0][0], focus.difference(trianglesnew[0][0])))
+
 
 ## initiate window and rendering
 from OpenGL.GL import *
 from OpenGL.GLUT import *
 
 def draw2():
+    ## rotations
+    cameraplane.altitudalrotation(focal_length, 20)
     glClear(GL_COLOR_BUFFER_BIT)
     trianglesdrawn = 0
     for triangle in trianglesnew:
@@ -38,23 +40,11 @@ def draw2():
                 break
             tripoints += [proj.astuple()]
         if (len(tripoints) == 3):
-            print(tripoints)
-            print("Drawing triangle: " + str(tripoints))
             glBegin(GL_TRIANGLES)
             for p in tripoints:
                 glVertex2f(p[0],p[1])
             glEnd()
             trianglesdrawn += 1
-    print(trianglesdrawn)
-    glutSwapBuffers()
-
-def draw():
-    glClear(GL_COLOR_BUFFER_BIT)
-    glBegin(GL_TRIANGLES)
-    glVertex2f(0.0, 0.5)
-    glVertex2f(-0.5, -0.5)
-    glVertex2f(0.5, -0.5)
-    glEnd()
     glutSwapBuffers()
 
 glutInit()

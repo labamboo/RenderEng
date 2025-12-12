@@ -1,4 +1,7 @@
 from math import sqrt
+from math import sin
+from math import cos
+from math import pi
 
 # 2D Vector class and associated methods
 class Vector2d:
@@ -203,6 +206,48 @@ class ProjectionPlane:
         norm = xaxis.cross(yaxis)
         return ProjectionPlane(origin, xaxis, yaxis, norm)
     
-        
+    # assumes projectionplane is an image plane, rotates it about the focus azimuthally
+    def azimuthalrotation(self,focal_distance, theta):
+        self.origin.difference(self.normal.timesscalar(focal_distance), True)
+        self.normal = rotateazimuthal(self.normal, theta)
+        self.xaxis = rotateazimuthal(self.xaxis, theta)
+        self.yaxis = rotateazimuthal(self.yaxis, theta)
+        self.origin.sum(self.normal.timesscalar(focal_distance), True)
+
+    # assumes projectionplane is an image plane, rotates it about the focus azimuthally
+    def altitudalrotation(self,focal_distance, theta):
+        self.origin.difference(self.normal.timesscalar(focal_distance), True)
+        self.normal = rotatealtitudal(self.normal, theta)
+        self.xaxis = rotatealtitudal(self.xaxis, theta)
+        self.yaxis = rotatealtitudal(self.yaxis, theta)
+        self.origin.sum(self.normal.timesscalar(focal_distance), True)
+
+    
+# rotation theta degrees of the azimuthal angle (counterclockwise) (in degrees)
+def rotateazimuthal(vec, theta):
+    assert type(vec) == Vector3d
+    theta = pi * theta / 180
+    # matrix maps (1,0,0) -> (cos(theta),sin(theta),0)
+    # (0,1,0) -> (-sin(theta),cos(theta),0)
+    # (0,0,1) -> (0,0,1)
+    # matrix is
+    # cos(theta) -sin(theta) 0
+    # sin(theta) cos(theta) 0
+    # 0 0 1
+    v1 = Vector3d(cos(theta), sin(theta), 0)
+    v2 = Vector3d(-1 * sin(theta), cos(theta), 0)
+    v3 = Vector3d(0,0,1)
+    return v1.timesscalar(vec.x).sum(v2.timesscalar(vec.y)).sum(v3.timesscalar(vec.z))
+
+def rotatealtitudal(vec, theta):
+    assert type(vec) == Vector3d
+    theta = pi * theta / 180
+    # matrix maps (1,0,0) -> (cos(theta), 0, -sin(theta))
+    # (0,1,0) -> (0,1,0)
+    # (0,0,1) -> (sin(theta), 0, cos(theta))
+    v1 = Vector3d(cos(theta), 0, -1 * sin(theta))
+    v2 = Vector3d(0,1,0)
+    v3 = Vector3d(sin(theta), 0, cos(theta))
+    return v1.timesscalar(vec.x).sum(v2.timesscalar(vec.y)).sum(v3.timesscalar(vec.z))
 
     
