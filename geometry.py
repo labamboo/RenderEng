@@ -180,11 +180,13 @@ class ProjectionPlane:
     
     # returns Vector2d containing plane intersection coordinates of ray with specified origin and direction
     # returns None if intersection does not exist
-    def intersection(self, rorigin, direction):
+    def intersection(self, rorigin, direction, filternormalvisible = False):
         assert type(rorigin) == Vector3d, "origin of ray must be 3d point"
         assert type(direction) == Vector3d, "direction of ray must be 3d point"
         direction = direction.normalize()
-        if (abs(direction.dot(self.normal)) < 0.1 ):
+        if (filternormalvisible and direction.dot(self.normal) > 0.01 ):
+            return None
+        elif (abs(direction.dot(self.normal)) < 0.01):
             return None
         t = self.normal.dot(self.origin.difference(rorigin)) / direction.dot(self.normal)
 
@@ -221,6 +223,13 @@ class ProjectionPlane:
         self.xaxis = rotatealtitudal(self.xaxis, theta)
         self.yaxis = rotatealtitudal(self.yaxis, theta)
         self.origin.sum(self.normal.timesscalar(focal_distance), True)
+
+    # determine if point on plane is within box of width/height of origin
+    def withinbox(self, width, height, point):
+        assert type(point) == Vector2d
+        if (abs(point.x) >= width / 2 or abs(point.y) >= height / 2):
+            return False
+        return True
 
     
 # rotation theta degrees of the azimuthal angle (counterclockwise) (in degrees)
