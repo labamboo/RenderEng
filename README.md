@@ -1,5 +1,5 @@
 # RenderEng
-Building a rendering engine from scratch using first principles. I plan to make iterations on the project, implementing more and more features as we go.<br>
+Building a rendering engine from scratch in Python with reference to Physically Based Rendering by Pharr, Jakob, and Humphreys. I plan to make iterations on the project, implementing more and more features as we go.<br>
 I never took a graphics class, so this will be a fun learning experience. This is something of a pet project, so progress will probably be slow.
 
 # Tech Stack
@@ -25,10 +25,14 @@ Expand the geometry library to incorporate object-oriented programming. Vectors 
 
 Improvements to-do: <br>
 - make the camera axes attached to the camera, instead of the image plane (the way it is right now makes rotations a bit weird)
-- bug where the intersection detection catches objects directly behind you
 - perspective transform is currently implemented with the intersection function of the ProjectivePlane class, which is clunky.
 - Having no distinction between points and vectors is also clunky
 - While homogeneous coordinate geometry is more unintuitive, it is much more elegant. Which is why we will be using it in the next iteration.
 - Still need to implement z-buffer and object overlap
-- Still need to implement 3d alternative reference frames (only the 2d projective plane so far)
+- Still need to implement 3d transforms between reference frames (only the 2d projective plane so far)
+
+## Chapter 2: Abstraction Layers and the Camera Model.
+At this point I have decided to change gears and use Physically Based Rendering by Pharr, Jakob, and Humphreys as a reference. Most of the functionality in the first iterations consists the core of the Camera class as defined in PBRT Chapter 5, specifically the Perspective-Projection Camera class that uses Camera-Space for Rendering and rasterization methods. We will now rewrite this code with modularity and abstraction in mind.<br>
+We implement PBRT's Camera and Film classes, allowing us to focus on more advanced rendering techniques later on by building on the core functionality of these classes.
+
 
