@@ -6,6 +6,7 @@
 # affine transformations in matrix form
 
 import numpy as np
+from math import cos,sin,pi
 
 class Coordinate3D:
     # initialization
@@ -59,17 +60,80 @@ class Coordinate3D:
         return np.array([vec[0] / vec[2], vec[1] / vec[2]])
     
 class Transform3D:
-    def __init__(self, matrix, type = "custom"):
+    def __init__(self, matrix, mat_type = "custom"):
         assert type(matrix) == np.ndarray
         assert matrix.shape == (4,4)
         self.mat = matrix
         self.type = type
 
+    def apply(self, vector):
+        if (type(vector) == Coordinate3D):
+            return Coordinate3D(self.mat @ vector.vec)
+        elif (type(vector) == np.ndarray):
+            assert (vector.shape[1] == 4)
+            return self.mat @ vector
+        else:
+            assert False , "vector of bad type"
+    
+    def compose(self,mat2):
+        return Transform3D(self.mat @ mat2.mat)
+    
+    # All angles defined as counterclockwise positive
+    # Rotation x degrees about x axis
+    @classmethod
+    def rotation_matrixX(cls,anglex):
+        anglex = float(anglex)
+        c = cos(anglex  * pi / 180.0)
+        s = sin(anglex * pi / 180.0)
+        return Transform3D(np.array([[1.0,0.0,0.0,0.0],
+                                     [0.0,c,s,0.0],
+                                     [0.0,-1.0 * s,c,0.0],
+                                     [0.0,0.0,0.0,1.0]]))
+
+    # All angles defined as counterclockwise positive
+    # Rotation x degrees about y axis
+    @classmethod
+    def rotation_matrixY(cls,angley):
+        angley = float(angley)
+        c = cos(angley  * pi / 180.0)
+        s = sin(angley * pi / 180.0)
+        return Transform3D(np.array([[c,0.0,-1.0 * s,0.0],
+                                     [0.0,1.0,0.0,0.0],
+                                     [s,0.0,c,0.0],
+                                     [0.0,0.0,0.0,1.0]]))
     
 
+    # All angles defined as counterclockwise positive
+    # Rotation x degrees about z axis
+    @classmethod
+    def rotation_matrixZ(cls,anglez):
+        anglez = float(anglez)
+        c = cos(anglez * pi / 180.0)
+        s = sin(anglez * pi / 180.0)
+        return Transform3D(np.array([[c,-1*s,0.0,0.0],
+                                     [s,c,0.0,0.0],
+                                     [0.0,0.0,1.0,0.0],
+                                     [0.0,0.0,0.0,1.0]]))
+
+    # Scale x,y,z by specified amounts
+    @classmethod
+    def scaling_matrix(cls,mul_x,mul_y,mul_z):
+        return Transform3D(np.array([[mul_x,0.0,0.0,0.0],
+                                     [0.0,mul_y,0.0,0.0],
+                                     [0.0,0.0,mul_z,0.0],
+                                     [0.0,0.0,0.0,1.0]]))
+    
+    # Translate x,y,z by specified amounts
+    @classmethod
+    def translation_matrix(cls,x,y,z):
+        return Transform3D(np.array([[1.0,0.0,0.0,x],
+                                     [0.0,1.0,0.0,y],
+                                     [0.0,0.0,1.0,z],
+                                     [0.0,0.0,0.0,1.0]]))
 
 
-testvec = Coordinate3D.from_coordinates(0,0,0,1)
-print(testvec)
-print(testvec.vec)
+    
+
+    
+
 
