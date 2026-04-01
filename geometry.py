@@ -15,18 +15,26 @@ class Coordinate3D:
         assert vector.shape == (4,1), "vector must have shape (4,1)"
         assert vector[3,0] == 1 or vector[3,0] == 0, "w coordinate must be 0 or 1"
         self.vec = vector
+        self.aslist = self.tolist
 
     # from 3d tuple
-    def from_3tuple(self,tuple, vector = False):
+    @classmethod
+    def from_3tuple(cls,tuple, vector = False):
         assert len(tuple) == 3, "tuple must be length 3"
         if (vector):
             return Coordinate3D.from_coordinates(tuple[0],tuple[1],tuple[2],0)
         else:
             return Coordinate3D.from_coordinates(tuple[0],tuple[1],tuple[2],1)
         
+    def tolist(self):
+        return self.vec.flatten().tolist()
+    
+        
     # from np vector
-    def from_coordinates(x, y, z, w):
+    @classmethod
+    def from_coordinates(cls, x, y, z, w):
         return Coordinate3D(np.array([x,y,z,w]).reshape(4,1))
+
         
     # addition
     def add(self, other):
@@ -78,42 +86,48 @@ class Transform3D:
     def compose(self,mat2):
         return Transform3D(self.mat @ mat2.mat)
     
-    # All angles defined as counterclockwise positive
-    # Rotation x degrees about x axis
+    # returns inverse transform
+    def inverse(self):
+        return Transform3D(np.linalg.inv(self.mat))
+    
+    # All angles defined as counterclockwise positive 
+    # Rotation x degrees about x axis y->z
     @classmethod
     def rotation_matrixX(cls,anglex):
         anglex = float(anglex)
         c = cos(anglex  * pi / 180.0)
         s = sin(anglex * pi / 180.0)
         return Transform3D(np.array([[1.0,0.0,0.0,0.0],
-                                     [0.0,c,s,0.0],
-                                     [0.0,-1.0 * s,c,0.0],
+                                     [0.0,c,-1.0 * s,0.0],
+                                     [0.0,s,c,0.0],
                                      [0.0,0.0,0.0,1.0]]))
 
-    # All angles defined as counterclockwise positive
+    # All angles defined as counterclockwise positive z->x
     # Rotation x degrees about y axis
     @classmethod
     def rotation_matrixY(cls,angley):
         angley = float(angley)
         c = cos(angley  * pi / 180.0)
         s = sin(angley * pi / 180.0)
-        return Transform3D(np.array([[c,0.0,-1.0 * s,0.0],
+        return Transform3D(np.array([[c,0.0,s,0.0],
                                      [0.0,1.0,0.0,0.0],
-                                     [s,0.0,c,0.0],
+                                     [-1.0 * s,0.0,c,0.0],
                                      [0.0,0.0,0.0,1.0]]))
     
 
     # All angles defined as counterclockwise positive
-    # Rotation x degrees about z axis
+    # Rotation x degrees about z axis: x -> y
     @classmethod
     def rotation_matrixZ(cls,anglez):
         anglez = float(anglez)
         c = cos(anglez * pi / 180.0)
         s = sin(anglez * pi / 180.0)
-        return Transform3D(np.array([[c,-1*s,0.0,0.0],
+        return Transform3D(np.array([[c,-1.0*s,0.0,0.0],
                                      [s,c,0.0,0.0],
                                      [0.0,0.0,1.0,0.0],
                                      [0.0,0.0,0.0,1.0]]))
+
+        
 
     # Scale x,y,z by specified amounts
     @classmethod
@@ -130,10 +144,10 @@ class Transform3D:
                                      [0.0,1.0,0.0,y],
                                      [0.0,0.0,1.0,z],
                                      [0.0,0.0,0.0,1.0]]))
-
-
     
-
-    
+    # Transform that is the identity matrix
+    @classmethod
+    def identity(cls):
+        return Transform3D(np.identity(4,float))
 
 
