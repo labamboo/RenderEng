@@ -12,17 +12,20 @@
 
 from geometry import *
 from camera import *
+from camera_locked import *
 
 #cameratype = "Locked"
 cameratype = "Normal"
-cam = Camera()
-cam.renderSpace = "World"
+if (cameratype == "Locked"):
+    cam = CameraLocked()
+    cam.renderSpace = "World"
+    # locked camera parameters for turning to x axis
+    cam.SetCamera(-5.0, 0.0, 0.0, 90.0, 90.0, 0.0)
+else:
+    cam = Camera()
+    cam.renderSpace = "World"
     # regular camera parameters for turning to x axis
-cam.SetCamera(0.0, 0.0, 0.0, 90.0, 0.0, 90.0)
-print(cam.origin.aslist())
-print(cam.forwardVector.aslist())
-print(cam.upVector.aslist())
-print(cam.leftVector.aslist())
+    cam.SetCamera(0.0, 0.0, 0.0, 90.0, 0.0, 90.0)
 
 
 # cam.setCamType("Perspective")

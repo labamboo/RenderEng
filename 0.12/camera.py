@@ -42,9 +42,6 @@ class Camera:
         # are mediated by these matrices
         self.type = "Orthographic"
         self.renderSpace = "Camera-World"
-
-
-        ############################## TO BE DEPRECATED
         # Camera Translation Parameters
         self.camera_translationx = 0.0
         self.camera_translationy = 0.0
@@ -58,7 +55,6 @@ class Camera:
         self.camera_rotation_phi = 0.0
         # Roll: (circular, periodic, 360 goes back to 0) camera roll
         self.camera_rotation_omega = 0.0
-        ############################################ TO BE DEPRECATED
         
         # Transform Matrices
         self.RenderFromWorld = Transform3D.identity()
@@ -68,11 +64,6 @@ class Camera:
         self.trNDCFromCamera = self.trNDCFromCameraOrtho
         self.trCameraFromNDC = self.trCameraFromNDCOrtho
 
-        # axes (directional)
-        self.origin = Coordinate3D.from_coordinates(0.0,0.0,0.0,1.0)
-        self.upVector = Coordinate3D.from_coordinates(0.0, 1.0, 0.0, 0.0)
-        self.forwardVector = Coordinate3D.from_coordinates(0.0, 0.0, 1.0, 0.0)
-        self.leftVector = Coordinate3D.from_coordinates(1.0, 0.0, 0.0, 0.0)
 
 
         # film information
@@ -197,90 +188,63 @@ class Camera:
     # CameraFromRender
     # Camera from World: Rotation yaw, pitch, roll, Translation
     # NOTE: default position for camera is looking straight up.
-    def UpdateMatrices(self):
-        rotational_matrix_WorldFromCamera = Transform3D.RotationFromCoordinate3D(self.leftVector, self.upVector, self.forwardVector)
-        translational_matrix_WorldFromCamera = Transform3D.TranslationFromCoordinate3D(self.origin)
+    def SetMatrices(self):
+        rotational_matrix_CameraFromWorld = Transform3D.rotation_matrixZ(-1.0 * self.camera_rotation_omega).compose(
+                                            Transform3D.rotation_matrixX(-1.0 * self.camera_rotation_phi).compose(
+                                            Transform3D.rotation_matrixY(-1.0 * self.camera_rotation_theta)
+                                    ))
+        translational_matrix_CameraFromWorld = Transform3D.translation_matrix(-1.0 * self.camera_translationx,
+                                                              -1.0 * self.camera_translationy,
+                                                              -1.0 * self.camera_translationz)
         identity_matrix = Transform3D.identity()
         
         if (self.renderSpace == "Camera"):
             self.RenderFromCamera = identity_matrix
             self.CameraFromRender = identity_matrix
-            self.WorldFromRender = translational_matrix_WorldFromCamera.compose(rotational_matrix_WorldFromCamera)
-            self.RenderFromWorld = self.WorldFromRender.inverse()
+            self.RenderFromWorld = rotational_matrix_CameraFromWorld.compose(translational_matrix_CameraFromWorld)
+            self.WorldFromRender = self.RenderFromWorld.inverse()
         elif(self.renderSpace == "World"):
             self.WorldFromRender = identity_matrix
             self.RenderFromWorld = identity_matrix
-            self.RenderFromCamera = translational_matrix_WorldFromCamera.compose(rotational_matrix_WorldFromCamera)
-            self.CameraFromRender = self.RenderFromCamera.inverse()
+            self.CameraFromRender = rotational_matrix_CameraFromWorld.compose(translational_matrix_CameraFromWorld)
+            self.RenderFromCamera = self.CameraFromRender.inverse()
         elif(self.renderSpace == "Camera-World"):
             # Camera-World Space
-            self.WorldFromRender = translational_matrix_WorldFromCamera
-            self.RenderFromWorld = translational_matrix_WorldFromCamera.inverse()
-            self.RenderFromCamera = rotational_matrix_WorldFromCamera
+            self.WorldFromRender = translational_matrix_CameraFromWorld.inverse()
+            self.RenderFromWorld = Transform3D.translation_matrix(-1.0 * self.camera_translationx,
+                                                              -1.0 * self.camera_translationy,
+                                                              -1.0 * self.camera_translationz)
+            self.RenderFromCamera = rotational_matrix_CameraFromWorld.inverse()
             self.CameraFromRender = self.RenderFromCamera.inverse()
         else:
             assert False, "Camera Render-Space not supported"
-    
-    # Moves Camera Position
-    # Helper Function
-    @classmethod
-    def MoveCamera(cls, origin, forward, up, left, Dx = 0.0 , Dy = 0.0, Dz = 0.0):
-        return Coordinate3D.weighted_sum([origin, forward, up, left], [1.0, Dz, Dy, Dx])
-        
-    # Rotates Camera about theta (zx plane)
-    # Helper Function
-    @classmethod
-    def RotateCameraZX(cls,forward, left, Dtheta):
-        return Coordinate3D.rotate(forward, left, Dtheta)
 
-    # Rotates Camera about phi (yz plane)
-    # Helper Function
-    @classmethod
-    def RotateCameraYZ(cls,up, forward, Dphi):
-        return Coordinate3D.rotate(up, forward, Dphi)
-
-    # Rotates Camera about omega (xy plane)
-    # Helper Function
-    @classmethod
-    def RotateCameraXY(cls,left, up, Domega):
-        return Coordinate3D.rotate(left, up, Domega)
     
-    # Move and Rotate Camera
-    # Order: theta, phi, omega, translation 
-    # TODO: figure out if the ordering greatly affects the feel of the movement
-    def MoveAndRotateCamera(self, Dx = 0.0, Dy = 0.0, Dz = 0.0, Dtheta = 0.0, Dphi = 0.0, Domega = 0.0):
-        origin = self.origin
-        forward = self.forwardVector
-        up = self.upVector
-        left = self.leftVector
-        # theta
-        if (Dtheta != 0.0):
-            forward, left = Camera.RotateCameraZX(forward, left, Dtheta)
-        # phi
-        if (Dphi != 0.0):
-            up, forward = Camera.RotateCameraYZ(up, forward, Dphi)
-        # omega
-        if (Domega != 0):
-            left, up = Camera.RotateCameraXY(left, up, Domega)
-        # translation
-        if (Dx != 0.0 or Dy != 0.0 or Dz != 0.0):
-            origin = Camera.MoveCamera(origin, forward, up, left, Dx, Dy, Dz)
-        self.origin = origin
-        self.forwardVector = forward
-        self.upVector = up
-        self.leftVector = left
-        self.UpdateMatrices()
+    # Updates camera location/orientation parameters
+    def MoveCamera(self, Dx = 0.0 , Dy = 0.0, Dz = 0.0, Dtheta = 0.0, Dphi = 0.0, Domega = 0.0):
+        self.SetCamera(self.camera_translationx + Dx,
+                       self.camera_translationy + Dy,
+                       self.camera_translationz + Dz,
+                       self.camera_rotation_theta + Dtheta,
+                       self.camera_rotation_phi + Dphi,
+                       self.camera_rotation_omega + Domega)
         return
-
     
-    # Sets camera location/orientation (order: theta, phi, omega, translation)
+    
+    # Sets camera location/orientation parameters
     def SetCamera(self, x, y, z, theta, phi, omega):
-        # reset Camera Coordinates
-        self.origin = Coordinate3D.from_coordinates(0.0,0.0,0.0,1.0)
-        self.upVector = Coordinate3D.from_coordinates(0.0, 1.0, 0.0, 0.0)
-        self.forwardVector = Coordinate3D.from_coordinates(0.0, 0.0, 1.0, 0.0)
-        self.leftVector = Coordinate3D.from_coordinates(1.0, 0.0, 0.0, 0.0)
-        # apply transforms in order
-        self.MoveAndRotateCamera(x, y, z, theta, phi, omega)
+        self.camera_translationx = x
+        self.camera_translationy = y
+        self.camera_translationz = z
+        self.camera_rotation_theta = theta = (theta % 360.0) if (theta % 360.0 > 0)  else (theta % 360.0) + 360.0
+        self.camera_rotation_omega = omega = omega % 360.0
+        self.camera_rotation_phi = phi = max(min(phi, 90.0), -90.0)
+        self.camera_rotation_phi_mod = (-1.0 * self.camera_rotation_phi) + 90.0
+        # error checks
+        assert theta >= 0.0 and theta <= 360.0, "theta = "+str(theta)+ " must be [0.0, 360.0)"
+        assert phi >= -90.0 and phi <= 90.0, "phi = "+str(phi)+ " must be [-90.0, 90.0]"
+        assert omega >= 0.0 and omega < 360.0, "omega = "+str(omega)+" must be [0.0, 360.0]"
+        self.SetMatrices()
         return
+    
     

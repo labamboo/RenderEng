@@ -26,17 +26,6 @@ class Coordinate3D:
         else:
             return Coordinate3D.from_coordinates(tuple[0],tuple[1],tuple[2],1)
         
-    # rotates two vectors by the specified angle (in degrees)
-    # direction of rotation is first -> second
-    @classmethod
-    def rotate(cls, first, second, angle):
-        assert not first.ispoint() and not second.ispoint(), "points cannot be rotated"
-        s = sin(angle * pi / 180.0)
-        c = cos(angle * pi / 180.0)
-        new_first = Coordinate3D((c * first.vec) + (s * second.vec))
-        new_second = Coordinate3D((c * second.vec) + (-1.0 * s * first.vec))
-        return new_first, new_second
-        
     def tolist(self):
         return self.vec.flatten().tolist()
     
@@ -45,17 +34,7 @@ class Coordinate3D:
     @classmethod
     def from_coordinates(cls, x, y, z, w):
         return Coordinate3D(np.array([x,y,z,w]).reshape(4,1))
-    
-    # weighted sum of vectors
-    @classmethod
-    def weighted_sum(cls, vecs, weights):
-        assert type(vecs) == list and type(weights) == list
-        assert len(vecs) == len(weights)
-        assert len(vecs) != 0
-        result = weights[0] * vecs[0].vec
-        for i in range(1, len(vecs)):
-            result = result + (weights[i] * vecs[i].vec)
-        return Coordinate3D(result)
+
         
     # addition
     def add(self, other):
@@ -87,7 +66,6 @@ class Coordinate3D:
         assert self.ispoint(), "vectors cannot be projected"
         vec = self.vec.tolist()
         return np.array([vec[0] / vec[2], vec[1] / vec[2]])
-
     
 class Transform3D:
     def __init__(self, matrix, mat_type = "custom"):
@@ -111,25 +89,6 @@ class Transform3D:
     # returns inverse transform
     def inverse(self):
         return Transform3D(np.linalg.inv(self.mat))
-    
-    # Creates rotation matrix from three column vectors,
-    # vectors arranged left to right
-    @classmethod
-    def RotationFromCoordinate3D(cls, x, y, z):
-        assert type(x) == Coordinate3D and type(y) == Coordinate3D and type(z) == Coordinate3D, "x,y,z must be Coordinate3D"
-        assert not x.ispoint() and not y.ispoint() and not z.ispoint(), "all rotation vectors cannot be points"
-        return Transform3D(np.array([x.vec.flatten(), y.vec.flatten(), z.vec.flatten(), [0.0,0.0,0.0,1.0]]).transpose())
-    
-    # Creates Translation matrix from Origin point
-    # as Coordinate3D
-    @classmethod
-    def TranslationFromCoordinate3D(cls, origin):
-        assert type(origin) == Coordinate3D, "new origin must be Coordinate3D"
-        assert origin.ispoint(), "origin must be a point not a vector"
-        return Transform3D(np.array([[1.0, 0.0, 0.0, 0.0],
-                                     [0.0, 1.0, 0.0, 0.0],
-                                     [0.0, 0.0, 1.0, 0.0],
-                                     origin.vec.flatten()]).transpose())
     
     # All angles defined as counterclockwise positive 
     # Rotation x degrees about x axis y->z
