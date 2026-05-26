@@ -38,6 +38,8 @@ We implement PBRT's Camera class, allowing us to focus on more advanced renderin
 At this point we have completed a crude rasterization engine. It has no clipping nor Z-buffer but it can render some basic shapes. To be able to use it without occlusion capabilities we draw only wireframe shapes, and we can view them in both orthographic and perspective views, and pan around to different angles. NOTE: The main entrypoint is pygametest, not main.<br>
 Note: I have realized that Physically Based Rendering features some pretty advanced graphics ideas, so I will start with a more fundamental text for graphics, Fundamentals of Computer Graphics by Marschner and Shirley, while also referencing the very organized material on Scratchapixel. Hopefully in the future once I am familiar with the more fundamental graphics topics I will be able to return to Physically Based Rendering.<br>
 To do the more interesting stuff such as lighting and light-matter interactions, I will have to shift to a ray-tracing system. So, we shift gears to version 0.3, a ray-tracing system, to explore these effects. We will still use python and pygame for now, although I may need to include GPU programming at some point to speed-up the computations. As for our rasterization engine, we will return to it later for real-time rendering.
+<img src="demos/version 0.20 demo.png" alt="Version 0.20 demo image">
+<img src="demos/version 0.20 demo2.png" alt="Version 0.20 demo image"><br>
 
 ## Version 0.3: A Basic Ray Tracing System
 Note: Working on the functions for ray-tracing rendering, I find myself writing a wrapper for numpy's dot product and cross product and think to myself: this Coordinate3D class I've created is clunky and outright terrible. Besides format validation, it serves no real purpose, and if I used bare numpy arrays instead, it would be simpler and less memory intensive. So, that is what I will do. Most format validation doesn't need to be done for every vector operation anyway, so I think I will just bake it into a higher level, like when instances are created, or wherever else necessary. Also, I'd like to speed up the pace a bit, so I will be putting a bit more time into this project, at least for a week or two.<br>
@@ -49,10 +51,7 @@ Now that we have a functional visibility framework for ray-tracing, we can move 
 To handle saturation of brightness values, we will use Reinhard tone-mapping.<br>
 <img src="demos/version 0.31 demo.png" alt="Version 0.31 demo image">
 <img src="demos/version 0.31 demo2.png" alt="Version 0.31 demo image">
+<br>
 Looking ahead, the plan for now is for 0.32 to explore reflection and refraction and maybe try to replicate Turner Whitted's iconic 1980 image featuring these two aspects of light-matter interaction.<br>
 
 Future topics to be explored: Monte Carlo integration and distributed ray-tracing, global illumination models, HDR (high dynamic range) rendering and tone mappers.
-
-
-
-[def]: demos/'version 0.30 demo'
