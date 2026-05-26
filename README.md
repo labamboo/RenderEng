@@ -47,9 +47,9 @@ Note 2: The entry point for this version is in raytracertest.py <br>
 ### Version 0.31
 Now that we have a functional visibility framework for ray-tracing, we can move on to the more interesting shading portion. I will first implement the Blinn-Phong light reflection model for opaque surfaces. This will make the objects look a bit more realistic, instead of being solid bright blobs of color. To showcase the Blinn-Phong light model I will also implement Spheres as surfaces that can be added. In the future I hope to explore the more modern models for light transport, such as BRDF, Cook-Torrance, and physically based rendering (time allowing). <br>
 To handle saturation of brightness values, we will use Reinhard tone-mapping.<br>
-Looking ahead, the plan for now is for 0.32 to explore reflection and refraction and maybe try to replicate Turner Whitted's iconic 1980 image featuring these two aspects of light-matter interaction.<br>
 <img src="demos/version 0.31 demo.png" alt="Version 0.31 demo image">
 <img src="demos/version 0.31 demo2.png" alt="Version 0.31 demo image">
+Looking ahead, the plan for now is for 0.32 to explore reflection and refraction and maybe try to replicate Turner Whitted's iconic 1980 image featuring these two aspects of light-matter interaction.<br>
 
 Future topics to be explored: Monte Carlo integration and distributed ray-tracing, global illumination models, HDR (high dynamic range) rendering and tone mappers.
 
