@@ -42,13 +42,14 @@ To do the more interesting stuff such as lighting and light-matter interactions,
 ## Version 0.3: A Basic Ray Tracing System
 Note: Working on the functions for ray-tracing rendering, I find myself writing a wrapper for numpy's dot product and cross product and think to myself: this Coordinate3D class I've created is clunky and outright terrible. Besides format validation, it serves no real purpose, and if I used bare numpy arrays instead, it would be simpler and less memory intensive. So, that is what I will do. Most format validation doesn't need to be done for every vector operation anyway, so I think I will just bake it into a higher level, like when instances are created, or wherever else necessary. Also, I'd like to speed up the pace a bit, so I will be putting a bit more time into this project, at least for a week or two.<br>
 Note 2: The entry point for this version is in raytracertest.py <br>
-![Version0.3DemoImage][def]
 <img src="demos/version 0.30 demo.png" alt="Version 0.30 demo image">
 
 ### Version 0.31
 Now that we have a functional visibility framework for ray-tracing, we can move on to the more interesting shading portion. I will first implement the Blinn-Phong light reflection model for opaque surfaces. This will make the objects look a bit more realistic, instead of being solid bright blobs of color. To showcase the Blinn-Phong light model I will also implement Spheres as surfaces that can be added. In the future I hope to explore the more modern models for light transport, such as BRDF, Cook-Torrance, and physically based rendering (time allowing). <br>
 To handle saturation of brightness values, we will use Reinhard tone-mapping.<br>
 Looking ahead, the plan for now is for 0.32 to explore reflection and refraction and maybe try to replicate Turner Whitted's iconic 1980 image featuring these two aspects of light-matter interaction.<br>
+<img src="demos/version 0.31 demo.png" alt="Version 0.31 demo image">
+<img src="demos/version 0.31 demo2.png" alt="Version 0.31 demo image">
 
 Future topics to be explored: Monte Carlo integration and distributed ray-tracing, global illumination models, HDR (high dynamic range) rendering and tone mappers.
 
