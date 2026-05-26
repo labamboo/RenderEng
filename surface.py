@@ -7,6 +7,7 @@ from geometry import *
 # does a first pass of its subsurfaces for the closest, returns the closest surface along with t.
 # TODO: alpha transparency and generating secondary 
 # REQUIREMENT: ALL COLORS MUST BE 4 TUPLES, formatted (r,g,b,a)
+# TODO: backface-culling?
 
 class Surface:
     color = (0,0,0,128)
@@ -14,6 +15,11 @@ class Surface:
     def __init__(self):
         self.subsurfaces = []
         self.color = Surface.color
+        self.singleFaced = False
+        self.shadingKAmbient = 0.5
+        self.shadingKDiffuse = 0.5
+        self.shadingKSpecular = 0.00
+        self.shadingNSpecular = 2
     # ray intersection
     def intersectRay(self, origin, direction):
         # first pass: closest-surface determination
@@ -31,17 +37,28 @@ class Surface:
     def addSurface(self, surf):
         self.subsurfaces.append(surf)
     
+    # dummy function
+    def computeSurfaceNormal(self, point):
+        assert False, "surface normal cannot be called on wrapper object"
+        return 
+    
 # Triangle Surface for intersections
 # takes vertices as np arrays
+# front, back faces distinguished by order of vertices
+# looking down the normal vector, vertices are counterclockwise
 class Triangle(Surface):
-    def __init__(self, vertex1, vertex2, vertex3, color = None):
+    def __init__(self, vertex1, vertex2, vertex3, color = None, singleFaced = False):
         assert type(vertex1) == np.ndarray and type(vertex2) == np.ndarray and type(vertex3) == np.ndarray, "vertices must be numpy arrays"
         assert len(vertex1) == 4 and len(vertex2) == 4 and len(vertex3) == 4, "vertices must be homogeneous points"
+        super().__init__()
         self.vertex = vertex1
         self.edge1 = vertex2 - vertex1
         self.edge2 = vertex3 - vertex1
+        self.normal = np.cross(self.edge1[0:3], self.edge2[0:3])# DIRECTION MATTERS, WHICH MEANS ORDER OF VERTICES MATTERS IF BACK/FRONT FACES DISTINGUISHED
+        self.normal = np.append((self.normal / np.sqrt(np.sum(self.normal ** 2))), 0)
         if (color != None):
             self.color = color
+        self.singleFaced = singleFaced
         
 
     #Moller Trumbore Algorithm
@@ -79,5 +96,46 @@ class Triangle(Surface):
         if t >= 0:
             return t, self
         return float('inf'), None
+    
+    
+    def computeSurfaceNormal(self, point):
+        return self.normal
 
-        
+# Surface Class for a sphere
+# takes central point and a radius
+# TODO: implement toRenderSpace transform
+class Sphere(Surface):
+    def __init__(self, center, radius, color = None):
+        super().__init__()
+        assert type(center) == np.ndarray and len(center) == 4
+        assert center[3] == 1, "center must be a point"
+        assert type(radius) == int or type(radius) == float
+        self.center = center
+        self.radius = radius
+        if (color != None):
+            self.color = color
+    
+    # Ray intersection algorithm
+    def intersectRay(self, point, direction):
+        # sphere equation is given by (x-x0)^2 + (y-x0)^2 + (z-z0)^2 = R^2
+        # rearranging: r dot r = R^2
+        # plugging in ray equation r = o + td gives us o + td - c dot o + td - c= R^2
+        # (o - c) dot (o - c) + 2t ((o - c) dot d) + t^2 ||d||^2 = R^2
+        # solve the quadratic
+        pointminuscenter = point - self.center
+        c = np.dot(pointminuscenter, pointminuscenter) - (self.radius ** 2)
+        b = 2 * np.dot(pointminuscenter, direction)
+        a = 1
+        det = (b**2) - (4*a*c)
+        if (det <= 0.0):
+            return float('inf'), None
+        t = min(((-1 * b) + np.sqrt(det) ) / 2,  ((-1 * b) - np.sqrt(det) ) / 2)
+        if (t <= 0.0):
+            return float('inf'), None
+        return t, self
+    
+    # compute surface normal
+    def computeSurfaceNormal(self, point):
+        assert point[3] == 1
+        return (point - self.center) / self.radius
+
