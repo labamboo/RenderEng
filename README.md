@@ -49,9 +49,16 @@ Note 2: The entry point for this version is in raytracertest.py <br>
 ### Version 0.31
 Now that we have a functional visibility framework for ray-tracing, we can move on to the more interesting shading portion. I will first implement the Blinn-Phong light reflection model for opaque surfaces. This will make the objects look a bit more realistic, instead of being solid bright blobs of color. To showcase the Blinn-Phong light model I will also implement Spheres as surfaces that can be added. In the future I hope to explore the more modern models for light transport, such as BRDF, Cook-Torrance, and physically based rendering (time allowing). <br>
 To handle saturation of brightness values, we will use Reinhard tone-mapping.<br>
+The images below demonstrate the model: on the left is a 256x144 resolution image, the right 1280x720<br>
 <img src="demos/version 0.31 demo.png" alt="Version 0.31 demo image">
-<img src="demos/version 0.31 demo2.png" alt="Version 0.31 demo image">
+<img src="demos/version 0.31 demo2 highres.png" alt="Version 0.31 demo image high resolution (1280x720)">
 <br>
+There are still some bugs, one of the obvious ones being the diffuse lighting showing up on both sides of the sphere instead of only the illuminated side.<br>
+Bug Fix 1: shadow ray propagation often detects intersections with the originating surface. I originally hacked a solution where the ray origin would be displaced slightly off the surface, but Marschner and Shirley detail a better workaround with using a lower-bound for t in the ray-intersection algorithm (Section 4.5.3).<br>
+Bug Fix 2: diffuse lighting showing up on both sides of the sphere (because I used absolute value of the dot product instead of a minimum cap at 0). Changed it to the capped version, but now the surface normals are behaving badly, causing faces exposed to light instead being dark.<br>
+Bug Fix 3: surface normal implementation right now does not depend on viewing direction. This makes it so surfaces can only be illuminated if the light is on the "front" side, and light illuminating the "back" side will not function properly. Fixed by incorporating viewing direction into the surface normal computation, so that the surface normal will be on the face being viewed.<br>
 Looking ahead, the plan for now is for 0.32 to explore reflection and refraction and maybe try to replicate Turner Whitted's iconic 1980 image featuring these two aspects of light-matter interaction.<br>
 
-Future topics to be explored: Monte Carlo integration and distributed ray-tracing, global illumination models, HDR (high dynamic range) rendering and tone mappers.
+Future topics to be explored: Monte Carlo integration and distributed ray-tracing, global illumination models, HDR (high dynamic range) rendering and tone mappers, anti-aliasing, parallel optimization and GPU programming, Post-Processing Effects
+
+
