@@ -46,7 +46,7 @@ Note: Working on the functions for ray-tracing rendering, I find myself writing 
 Note 2: The entry point for this version is in raytracertest.py <br>
 <img src="demos/version 0.30 demo.png" alt="Version 0.30 demo image">
 
-### Version 0.31
+### Version 0.31: Blinn-Phong Shading and Spheres
 Now that we have a functional visibility framework for ray-tracing, we can move on to the more interesting shading portion. I will first implement the Blinn-Phong light reflection model for opaque surfaces. This will make the objects look a bit more realistic, instead of being solid bright blobs of color. To showcase the Blinn-Phong light model I will also implement Spheres as surfaces that can be added. In the future I hope to explore the more modern models for light transport, such as BRDF, Cook-Torrance, and physically based rendering (time allowing). <br>
 To handle saturation of brightness values, we will use Reinhard tone-mapping.<br>
 The images below demonstrate the model: on the left is a 256x144 resolution image, the right 1280x720<br>
@@ -54,11 +54,27 @@ The images below demonstrate the model: on the left is a 256x144 resolution imag
 <img src="demos/version 0.31 demo2 highres.png" alt="Version 0.31 demo image high resolution (1280x720)">
 <br>
 There are still some bugs, one of the obvious ones being the diffuse lighting showing up on both sides of the sphere instead of only the illuminated side.<br>
-Bug Fix 1: shadow ray propagation often detects intersections with the originating surface. I originally hacked a solution where the ray origin would be displaced slightly off the surface, but Marschner and Shirley detail a better workaround with using a lower-bound for t in the ray-intersection algorithm (Section 4.5.3).<br>
+Bug Fix 1: shadow ray propagation often detects intersections with the originating surface. I originally hacked a solution where the ray origin would be displaced slightly off the surface, but Marschner and Shirley detail a better workaround with using a lower-bound for t in the ray-intersection algorithm (Section 4.5.3). (This method is known as "shadow bias" and is also used in rasterization shadow maps.)<br>
 Bug Fix 2: diffuse lighting showing up on both sides of the sphere (because I used absolute value of the dot product instead of a minimum cap at 0). Changed it to the capped version, but now the surface normals are behaving badly, causing faces exposed to light instead being dark.<br>
 Bug Fix 3: surface normal implementation right now does not depend on viewing direction. This makes it so surfaces can only be illuminated if the light is on the "front" side, and light illuminating the "back" side will not function properly. Fixed by incorporating viewing direction into the surface normal computation, so that the surface normal will be on the face being viewed.<br>
-Looking ahead, the plan for now is for 0.32 to explore reflection and refraction and maybe try to replicate Turner Whitted's iconic 1980 image featuring these two aspects of light-matter interaction.<br>
 
-Future topics to be explored: Monte Carlo integration and distributed ray-tracing, global illumination models, HDR (high dynamic range) rendering and tone mappers, anti-aliasing, parallel optimization and GPU programming, Post-Processing Effects
+### Version 0.32: Whitted-Style Shading (Reflection/Refraction) and Checkerboards
+As planned, this version will incorporate reflection and refraction properties, and try to replicate Turner Whitted's iconic 1980 image featuring these two aspects of light-matter interaction. To make a proper recreation of the image, I will also incorporate the ability to render a checkerboarded surface for the ground. As I'm sure the checkerboard pattern will introduce considerable aliasing, the plan is for the next section to tackle anti-aliasing methods (although if rendering times take far too long I may tackle parallel rendering and GPU programming first).<br>
+For transparent and semi-transparent objects, we need to take into account that light is not fully blocked by them and therefore any shadows cast are either fully nonexistent or attenuated. Essentially shadow rays are attenuated by the objects instead of fully blocked.<br>
+For reflection, we simply cast a reflection (specular) ray. There should be some dimming of the reflected light, and if the material is not fully reflective then compose the object color with the reflected light color.<br>
+Finally, for the checkerboard we need to implement procedural texturing. <br>
+Note: I originally planned to incorporate Fresnel splitting into this version, but seeing as its a bit more advanced I will save that for later. I will simply use constant material coefficients for reflection and refraction. <br>
+Issue: There was a bug in the tone-mapping of 0.31, where the total light scale factor was applied after tone-mapping instead of before. Fixing it causes coloring of all the surfaces to become oversaturated. So, I may as well take this chance to set up a proper system for determining color values. Color values will be changed to numpy arrays as well, and they will range over all real numbers, represented by floats. Before drawing the pixel values to a screen color values will be tone-mapped using a function (currently Reinhard tone-mapping). Furthermore when calculating reflections, I will normalize the total brightness by the sum of coefficients k (shadingKAmbient, shadingKDiffuse, shadingKSpecular, shadingKReflection, shadingKRefraction)<br>
+Bug Fix 1: shadow rays are completely obstructed by transparent objects. For now, I won't calculate shadow-ray refraction but rather just decrease the light by a multiplier for each transparent surface crossed, this also means shadow-ray light will pass in a straight-line fashion through transparent objects.<br>
+Note 2: To implement the checkerboard pattern, I will add a function to all surfaces that returns the color at any given point. I will also create a new class, Texture, that returns a color for a given texture coordinate. The function in Surface will compute texture coordinates and call its Texture to return a color.<br>
+Issue: Should I return u,v coordinates when the surface intersection is originally computed? For triangles and quadrilateral surfaces at least, this would save a redundant computation of u and v. I will kick this question down the road for now. If this becomes a problem later, I can optimize for it.<br>
+Bug: checkerboard pattern only seems to work properly for even numbers<br>
+The completed version is demo-ed below, in low-resolution (256x144) and high-resolution (1280x720) (I say "completed but there are still some bugs). With everything we have here, we can produce a recreation of a Whitted-Style graphics rendering, minus the anti-aliasing, which I will tackle later. The high-res image took about 4.5 minutes to render on my computer, so I will probably need to tackle parallelization very soon.<br>
+<img src="demos/version 0.32 demo.png" alt="Version 0.32 demo image">
+<img src="demos/version 0.32 demo highres.png" alt="Version 0.32 demo image high resolution (1280x720)">
+<br>
+
+
+Future topics to be explored: Monte Carlo integration and distributed ray-tracing, global illumination models, HDR (high dynamic range) rendering and tone mappers, anti-aliasing, parallel optimization and GPU programming, Post-Processing Effects, Gouraud (smooth) shading, BRDF and Lighting (including light intensity spherical falloff), shadow maps (shadows in rasterization), automatic computation of shadow-bias, Fresnel shading
 
 
